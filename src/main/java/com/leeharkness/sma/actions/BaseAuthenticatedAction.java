@@ -1,5 +1,6 @@
 package com.leeharkness.sma.actions;
 
+import com.amazonaws.services.cognitoidentity.model.Credentials;
 import com.google.inject.Inject;
 import com.leeharkness.sma.ApplicationContext;
 import com.leeharkness.sma.SMAExitStatus;
@@ -7,6 +8,8 @@ import com.leeharkness.sma.SMAUnauthenticatedException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.beryx.textio.TextIO;
+
+import java.util.Date;
 
 /**
  * The base action for all actions which require Authentication
@@ -48,8 +51,8 @@ public abstract class BaseAuthenticatedAction extends BaseSMAAction {
      * @throws SMAUnauthenticatedException if there is no authenticated user
      */
     private void authenticationCheck() throws SMAUnauthenticatedException {
-        final String token = getApplicationContext().getToken();
-        if (!(token != null || token.length() > 0)) {
+        final Credentials credentials = getApplicationContext().getCredentials();
+        if (credentials == null || credentials.getExpiration().after(new Date())) {
             throw new SMAUnauthenticatedException(getApplicationContext().getUserName());
         }
     }

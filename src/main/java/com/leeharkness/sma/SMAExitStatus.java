@@ -15,4 +15,5 @@ public class SMAExitStatus {
     public static final SMAExitStatus CANCELLED = SMAExitStatus.builder().value(1).build();
     public static final SMAExitStatus FAILURE = SMAExitStatus.builder().value(-1).build();
     public static final SMAExitStatus UNAUTHENTICATED = SMAExitStatus.builder().value(-2).build();
+    public static final SMAExitStatus LOGIN_FAILURE = SMAExitStatus.builder().value(-3).build();
 }

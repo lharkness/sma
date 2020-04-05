@@ -72,9 +72,24 @@ class RegisterActionTest {
     }
 
     @Test
+    public void testThatWeCancelOnConfirmPassword() {
+        when(mockStringInputReader.read("Username: ")).thenReturn("username");
+        when(mockStringInputReader.read("Password: ")).thenReturn("password");
+        when(mockStringInputReader.read("Confirm Password: ")).thenReturn("q");
+
+        // Indicate that we don't have a duplicate username
+        when(mockDynamoStub.lookupUserName("username")).thenReturn(Optional.empty());
+
+        SMAExitStatus result = target.execute(mockTextIO, new String[1]);
+
+        assertThat(result, is(SMAExitStatus.CANCELLED));
+    }
+
+    @Test
     public void testThatWeCancelOnEmail() {
         when(mockStringInputReader.read("Username: ")).thenReturn("username");
         when(mockStringInputReader.read("Password: ")).thenReturn("password");
+        when(mockStringInputReader.read("Confirm Password: ")).thenReturn("password");
         when(mockStringInputReader.read("Email: ")).thenReturn("q");
 
         // Indicate that we don't have a duplicate username
@@ -89,6 +104,7 @@ class RegisterActionTest {
     public void testThatWeCanSuccessfullySignUpAUser() {
         when(mockStringInputReader.read("Username: ")).thenReturn("username");
         when(mockStringInputReader.read("Password: ")).thenReturn("password");
+        when(mockStringInputReader.read("Confirm Password: ")).thenReturn("password");
         when(mockStringInputReader.read("Email: ")).thenReturn("email");
 
         // Indicate that we don't have a duplicate username or email
@@ -107,9 +123,33 @@ class RegisterActionTest {
     }
 
     @Test
+    public void testThatWeCanSuccessfullySignUpAUserWithUserNameFromCommandLine() {
+        when(mockStringInputReader.read("Password: ")).thenReturn("password");
+        when(mockStringInputReader.read("Confirm Password: ")).thenReturn("password");
+        when(mockStringInputReader.read("Email: ")).thenReturn("email");
+
+        // Indicate that we don't have a duplicate username or email
+        when(mockDynamoStub.lookupUserName("username")).thenReturn(Optional.empty());
+        when(mockDynamoStub.lookupUserEmail("email")).thenReturn(Optional.empty());
+
+        when(mockCognitoStub.signUpUser(eq("username"), anyString(), eq("email"), anyString()))
+                .thenReturn(true);
+        when(mockCognitoStub.confirmUser("username", "confirmationcode")).thenReturn(true);
+
+        when(mockStringInputReader.read("Enter confirmation code: ")).thenReturn("confirmationcode");
+
+        String[] args = {"register", "username"};
+
+        SMAExitStatus result = target.execute(mockTextIO, args);
+
+        assertThat(result, is(SMAExitStatus.SUCCESS));
+    }
+
+    @Test
     public void testThatWeReportProblemsSigningUpUser() {
         when(mockStringInputReader.read("Username: ")).thenReturn("username");
         when(mockStringInputReader.read("Password: ")).thenReturn("password");
+        when(mockStringInputReader.read("Confirm Password: ")).thenReturn("password");
         when(mockStringInputReader.read("Email: ")).thenReturn("email");
 
         // Indicate that we don't have a duplicate username or email
@@ -128,6 +168,7 @@ class RegisterActionTest {
     public void testThatWeCanCancelConfirmationCode() {
         when(mockStringInputReader.read("Username: ")).thenReturn("username");
         when(mockStringInputReader.read("Password: ")).thenReturn("password");
+        when(mockStringInputReader.read("Confirm Password: ")).thenReturn("password");
         when(mockStringInputReader.read("Email: ")).thenReturn("email");
 
         // Indicate that we don't have a duplicate username or email

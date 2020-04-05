@@ -1,6 +1,9 @@
 package com.leeharkness.sma.aws;
 
+import com.amazonaws.services.cognitoidentity.model.Credentials;
 import lombok.NonNull;
+
+import java.util.Optional;
 
 /**
  * Our interface to Cognito
@@ -28,5 +31,15 @@ public class CognitoStub {
      */
     public boolean confirmUser(final @NonNull String userName, final @NonNull String confirmationCode) {
         return true;
+    }
+
+    /**
+     * Obtains the AWS credentials for a given userName/passwordHash combo.
+     * @param userName The userName to log in
+     * @param passwordHash the password hash to use
+     * @return an Optional Credentials reference - empty of not logged in
+     */
+    public Optional<Credentials> login(final @NonNull String userName, final @NonNull String passwordHash) {
+        return Optional.empty();
     }
 }

@@ -137,33 +137,27 @@ public class RegisterAction extends BaseUnauthenticatedAction {
     private Optional<String> getPasswordHash(final @NonNull TextIO textIO) {
         final TextTerminal<?> textTerminal = textIO.getTextTerminal();
         boolean keepGoing = true;
-        String passwordHash = "";
+        String password = "";
         while(keepGoing) {
             textTerminal.println("Enter 'q' to quit");
-            final String password = textIO.newStringInputReader().read("Password: ");
+            password = textIO.newStringInputReader().read("Password: ");
             if (password.equalsIgnoreCase("q")) {
                 return Optional.empty();
             }
-            final List<String> validationErrorList = validatePassword(password);
+            final String confirmPassword = textIO.newStringInputReader().read("Confirm Password: ");
+            if (confirmPassword.equalsIgnoreCase("q")) {
+                return Optional.empty();
+            }
+            final List<String> validationErrorList = validatePassword(password, confirmPassword);
             if (validationErrorList.size() != 0) {
                 textTerminal.println("Password is invalid: " + validationErrorList);
                 keepGoing = true;
             }
             else {
-                try {
-                    final MessageDigest messageDigest = MessageDigest.getInstance("MD5");
-                    final byte[] passwordHashBytes = messageDigest.digest(password.getBytes());
-                    final Base64.Encoder base64Encoder = Base64.getEncoder();
-                    passwordHash = base64Encoder.encodeToString(passwordHashBytes);
-                    keepGoing = false;
-                }
-                catch (final NoSuchAlgorithmException nsae) {
-                    log.error("No MD5 algorithm found", nsae);
-                    return Optional.empty();
-                }
+                keepGoing = false;
             }
         }
-        return Optional.of(passwordHash);
+        return ActionUtils.generatePasswordHash(password);
     }
 
     /**
@@ -235,9 +229,10 @@ public class RegisterAction extends BaseUnauthenticatedAction {
     /**
      * Enforces password validation rules
      * @param password the password to validate
+     * @param confirmPassword the password to validate (confirmation)
      * @return a List of validation errors; empty list if valid
      */
-    private List<String> validatePassword(final @NonNull String password) {
+    private List<String> validatePassword(final @NonNull String password, final @NonNull String confirmPassword) {
         return new ArrayList<>();
     }
 
@@ -246,7 +241,7 @@ public class RegisterAction extends BaseUnauthenticatedAction {
      * @param email the email address to validate
      * @return a List of validation errors; empty list if valid
      */
-    private List<String> validateEmail(String email) {
+    private List<String> validateEmail(final @NonNull String email) {
         return new ArrayList<>();
     }
 
@@ -259,7 +254,7 @@ public class RegisterAction extends BaseUnauthenticatedAction {
     }
 
     @VisibleForTesting
-    protected void setTesting(boolean inTest) {
+    protected void setTesting(final boolean inTest) {
         this.inTest = inTest;
     }
 }
